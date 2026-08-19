@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crónicas de Constellaria: El Despertar</title>
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --accent: #38bdf8;
+      --gold: #f59e0b;
+      --red-boss: #ef4444;
+      --text: #f8fafc;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px;
+    }
+    h1 { margin: 0; color: var(--accent); font-size: 1.8rem; }
+
+    .mode-toggle {
+      background: #334155; padding: 8px 16px; border-radius: 20px;
+      cursor: pointer; font-weight: bold; user-select: none;
+    }
+    .mode-toggle.teacher { background: #0284c7; }
+
+    /* Navegación Principal */
+    .tabs-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+    .tab-btn {
+      background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+      padding: 10px 20px; border-radius: 8px; cursor: pointer;
+      font-size: 1rem; font-weight: bold; transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+    .tab-btn.hidden { display: none !important; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Pestaña Lore / Historia */
+    .lore-container {
+      background: var(--bg-card);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 900px;
+      margin: 0 auto;
+      line-height: 1.8;
+      font-size: 1.05rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .lore-title {
+      color: var(--gold);
+      text-align: center;
+      font-size: 1.8rem;
+      margin-top: 0;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 15px;
+    }
+    .lore-paragraph {
+      margin-bottom: 20px;
+      color: #e2e8f0;
+      text-align: justify;
+    }
+    .lore-highlight {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* Formulario Registro */
+    .form-container { background: var(--bg-card); padding: 20px; border-radius: 12px; max-width: 500px; margin: 0 auto 30px auto; }
+    .form-group { margin-bottom: 12px; text-align: left; }
+    label { display: block; font-size: 0.9em; margin-bottom: 4px; color: #94a3b8; }
+    input, select {
+      width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155;
+      background: #0f172a; color: #fff; box-sizing: border-box;
+    }
+    .btn-submit {
+      width: 100%; background: #22c55e; color: white; border: none;
+      padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #16a34a; }
+
+    /* LAYOUT CURSOS (Tribus VS Jefe Final) */
+    .course-layout {
+      display: grid;
+      grid-template-columns: 1fr 290px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 950px) {
+      .course-layout { grid-template-columns: 1fr; }
+    }
+
+    .boss-sidebar {
+      background: rgba(239, 68, 68, 0.08);
+      border: 2px solid var(--red-boss);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+      position: sticky;
+      top: 20px;
+    }
+    .boss-title {
+      color: var(--red-boss);
+      font-size: 1.1rem;
+      margin-top: 0;
+      border-bottom: 1px solid var(--red-boss);
+      padding-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Organización por Tribus */
+    .tribu-section { background: #182232; border-radius: 12px; padding: 15px; margin-bottom: 25px; border: 1px solid #334155; }
+    .tribu-title { font-size: 1.3rem; color: var(--gold); margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+    .grid-avatars { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-top: 20px; }
+
+    /* TARJETAS Y POSICIONAMIENTO DE GEMAS */
+    .avatar-card {
+      background: var(--bg-card); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .avatar-card.boss-card {
+      border: 1px solid var(--red-boss);
+      margin-bottom: 15px;
+    }
+
+    .card-layers { position: relative; width: 100%; aspect-ratio: 9 / 16; overflow: visible; border-radius: 6px; }
+    
+    .layer-base {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+      object-fit: cover; object-position: center; z-index: 1; border-radius: 6px;
+      transform-origin: center; transition: transform 0.2s ease;
+    }
+
+    /* ESCALAS Y MARCOS */
+    .lvl-0 .layer-base { transform: scale(1); }
+    .lvl-1 .layer-base { transform: scale(0.88); }
+    .lvl-2 .layer-base { transform: scale(0.86); }
+    .lvl-3 .layer-base { transform: scale(0.88); }
+    .lvl-4 .layer-base { transform: scale(0.88); }
+    .lvl-5 .layer-base { transform: scale(0.88); }
+
+    .layer-marco {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+      object-fit: fill; z-index: 2; pointer-events: none; border-radius: 6px;
+    }
+
+    .layer-insignia {
+      position: absolute; 
+      top: -3%; 
+      right: -3%; 
+      width: 34%; 
+      height: auto; 
+      z-index: 5; 
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8));
+    }
+
+    .layer-diamante {
+      position: absolute; 
+      top: -3%; 
+      left: -3%; 
+      width: 34%; 
+      height: auto; 
+      z-index: 6; 
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8));
+    }
+
+    .student-info { margin-top: 12px; }
+    .student-name { font-weight: bold; font-size: 1rem; }
+    .student-detail { font-size: 0.8em; color: #94a3b8; }
+    .level-badge {
+      display: inline-block; background: #334155; padding: 4px 8px; border-radius: 12px; font-size: 0.75em; margin-top: 5px;
+    }
+    .level-badge.max-level { background: #f59e0b; color: #000; font-weight: bold; box-shadow: 0 0 10px rgba(245,158,11,0.5); }
+    .boss-badge { background: var(--red-boss); color: #fff; font-weight: bold; }
+
+    .controls-teacher { display: flex; gap: 5px; margin-top: 10px; }
+    .btn-action { flex: 1; padding: 6px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold; }
+    .btn-lvl { background: #38bdf8; color: #000; }
+    .btn-del { background: #ef4444; color: #fff; }
+
+    /* LAYOUT MAPA Y MISIONES */
+    .misiones-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .misiones-layout { grid-template-columns: 1fr; }
+    }
+
+    .map-sidebar {
+      background: var(--bg-card);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .map-sidebar h3 { margin-top: 0; color: var(--gold); font-size: 1.1rem; }
+    .map-card-preview {
+      position: relative; cursor: pointer; border-radius: 8px; overflow: hidden;
+      border: 2px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .map-card-preview:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
+    }
+    .map-preview-img { width: 100%; height: auto; display: block; object-fit: cover; }
+    .map-hint { display: block; background: rgba(15, 23, 42, 0.9); color: #94a3b8; font-size: 0.8em; padding: 6px; font-weight: bold; }
+
+    /* TERRITORIOS Y MISIONES */
+    .territory-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .terr-btn { padding: 8px 12px; border-radius: 6px; background: #334155; border: none; color: #fff; cursor: pointer; transition: 0.2s; }
+    .terr-btn.active { font-weight: bold; color: #000; }
+    .terr-content { display: none; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 2px solid transparent; }
+    .terr-content.active { display: block; }
+    .missions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+    .mission-item { text-align: center; }
+    
+    .mission-img { 
+      width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); object-fit: cover; 
+      cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mission-img:hover {
+      transform: scale(1.04);
+      box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4);
+    }
+    .mission-title { margin-top: 8px; font-weight: bold; color: #f8fafc; font-size: 0.9em; text-transform: uppercase;}
+
+    #terr-bosque { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
+    #terr-viento { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+    #terr-magma { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+    #terr-grave { border-color: #a855f7; background: rgba(168, 85, 247, 0.1); }
+    #terr-sol { border-color: #eab308; background: rgba(234, 179, 8, 0.1); }
+    #terr-tribal { border-color: #06b6d4; background: rgba(6, 182, 212, 0.1); }
+    #terr-arco { border-color: #f97316; background: rgba(249, 115, 22, 0.1); }
+
+    /* MODAL DE AMPLIACIÓN DE IMAGEN */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.88); z-index: 9999;
+      justify-content: center; align-items: center; cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-img {
+      max-width: 90%; max-height: 90vh; border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.9); object-fit: contain;
+      animation: modalZoom 0.25s ease-out;
+    }
+    @keyframes modalZoom {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌟 Crónicas de Constellaria</h1>
+  <div id="modeBtn" class="mode-toggle" onclick="promptAccessCode()">Acceso / Rol</div>
+</header>
+
+<div class="tabs-nav" id="tabsNav">
+  <button class="tab-btn active" id="btn-tab-lore" onclick="switchTab('lore')">📜 Lore / Historia</button>
+  <button class="tab-btn" id="btn-tab-misiones" onclick="switchTab('misiones')">🗺️ Mapa y Misiones</button>
+  <button class="tab-btn" id="btn-tab-Tercero" onclick="switchTab('Tercero')">Tercero</button>
+  <button class="tab-btn" id="btn-tab-Cuarto" onclick="switchTab('Cuarto')">Cuarto</button>
+  <button class="tab-btn" id="btn-tab-Quinto" onclick="switchTab('Quinto')">Quinto</button>
+  <button class="tab-btn" id="btn-tab-Sexto" onclick="switchTab('Sexto')">Sexto</button>
+  <button class="tab-btn" id="btn-tab-registro" onclick="switchTab('registro')">➕ El Llamado</button>
+</div>
+
+<!-- LORE / HISTORIA (COMPLETO Y CORREGIDO) -->
+<div id="tab-lore" class="tab-content active">
+  <div class="lore-container">
+    <h2 class="lore-title">Crónicas de Constellaria: El Despertar de la Armonía</h2>
+    
+    <p class="lore-paragraph">
+      En el vasto y místico mundo de <span class="lore-highlight">Constellaria</span>, Las Tierras del Sonido, la magia no se invoca con varitas, sino que se forja a través de la música. Este reino está dividido en territorios ancestrales, cada uno custodiado por fuerzas primigenias y protegido por sus propios clanes: el <span class="lore-highlight">Bosque del Metal Resonante</span>, resguardado por los/las <span class="lore-highlight">Guardianes del Eco</span>; el <span class="lore-highlight">Mar del Viento Susurrante</span>, vigilado por los/las <span class="lore-highlight">Heraldos/as del Viento</span>; las <span class="lore-highlight">Cumbres de las Teclas Magmáticas</span>, dominadas por los/las <span class="lore-highlight">Hechiceros/as de la Armonía</span>; la <span class="lore-highlight">Penumbra del Retumbar Grave</span>, defendida por los/las <span class="lore-highlight">Centinelas del Grave</span>; la <span class="lore-highlight">Estepa de las Cuerdas del Sol</span>, recorrida por los/las <span class="lore-highlight">Bardos/as de las Cuerdas</span>; el <span class="lore-highlight">Valle del Pulso Tribal</span>, cuna de los/las <span class="lore-highlight">Forjadores/as del Ritmo</span>; y el <span class="lore-highlight">Cañón del Arco</span>, bastión de los/las <span class="lore-highlight">Caballeros/as del Arco</span>.
+    </p>
+
+    <p class="lore-paragraph">
+      En estas tierras, la vocación no se elige; el instrumento elige al héroe. Durante la infancia, cada niño experimenta <span class="lore-highlight">"El Llamado"</span>, el despertar de su alma musical. Al tocar por primera vez la nota verdadera del instrumento al que están predestinados, la pura energía de ese sonido cristaliza en el aire forjando su <span class="lore-highlight">Gema Sonora</span>. Este cristal mágico no es un simple símbolo de poder, sino una brújula mística viva que comienza a latir al ritmo del corazón del portador. Guiado por su fuerza magnética, la luz de la gema arrastra al joven aprendiz a través de <span class="lore-highlight">Constellaria</span> hacia su territorio ancestral. Al llegar al epicentro mágico de su región, el cristal estalla en su máxima luminosidad, sincronizándose en perfecta armonía con las gemas de los demás. Es en ese deslumbrante momento cuando el solitario viaje termina y el aprendiz es finalmente acogido por su verdadera familia de batalla: su <span class="lore-highlight">Tribu</span>.
+    </p>
+
+    <p class="lore-paragraph">
+      El instrumento, sin embargo, no solo te lleva a tu tribu, sino que revela ante ti <span class="lore-highlight">cinco misiones propias</span> dictadas por tu vocación. A medida que superes estos desafíos en tu viaje, el material del marco rectangular que envuelve tu retrato heroico irá mutando, reflejando tu experiencia. Obtendrás recompensas en forma de marcos forjados en <span class="lore-highlight">hierro, bronce, plata y oro</span>. La quinta misión, la más dura y legendaria de todas, otorgará a los vencedores la codiciada <span class="lore-highlight">Insignia de Diamante</span>.
+    </p>
+
+    <p class="lore-paragraph">
+      El material de tu marco es crucial, ya que determinará cómo serás evaluado durante tu entrenamiento. Dentro de estas reglas, existe un gran privilegio: <span class="lore-highlight">solo los miembros que hayan alcanzado el marco de oro tendrán el poder de elegir dónde evaluarse</span>.
+    </p>
+
+    <p class="lore-paragraph">
+      La <span class="lore-highlight">Gran Evaluación o batalla final</span> nunca se libra en solitario. Para triunfar, deberás luchar en compañía de las demás tribus, uniendo sus instrumentos para entonar la melodía perfecta y así lograr vencer al <span class="lore-highlight">Maestro Nicolás</span>, el sabio de la música.
+    </p>
+
+    <p class="lore-paragraph">
+      Pero la disciplina de un héroe se demuestra todos los días. Al comienzo de cada clase, el <span class="lore-highlight">Maestro Nicolás</span> invocará a los jugadores, quienes tendrán que responder a esta invocación haciendo retumbar el salón con <span class="lore-highlight">el grito de guerra</span> creado por su propia tribu.
+    </p>
+  </div>
+</div>
+
+<!-- MAPA Y MISIONES -->
+<div id="tab-misiones" class="tab-content">
+  <h2>📜 Misiones y Mapa del Reino</h2>
+  <p style="color:#94a3b8; margin-bottom: 20px;">Explora el mapa del reino o selecciona un territorio para visualizar las misiones de sus instrumentos:</p>
+  
+  <div class="misiones-layout">
+    <div class="map-sidebar">
+      <h3>🗺️ Mapa de Constellaria</h3>
+      <div class="map-card-preview" onclick="openImageModal('mapa.png')">
+        <img src="mapa.png" onerror="this.onerror=null; this.src='mapa.jpg';" class="map-preview-img" alt="Mapa">
+        <span class="map-hint">🔍 Clic para ampliar el Mapa</span>
+      </div>
+    </div>
+
+    <div class="misiones-main">
+      <div class="territory-nav">
+        <button class="terr-btn active" style="background:#10b981;" onclick="switchTerritory('bosque', this)">Bosque del Metal</button>
+        <button class="terr-btn" style="background:#3b82f6;" onclick="switchTerritory('viento', this)">Mar del Viento</button>
+        <button class="terr-btn" style="background:#ef4444;" onclick="switchTerritory('magma', this)">Teclas Magmáticas</button>
+        <button class="terr-btn" style="background:#a855f7;" onclick="switchTerritory('grave', this)">Retumbar Grave</button>
+        <button class="terr-btn" style="background:#eab308; color:#000;" onclick="switchTerritory('sol', this)">Cuerdas del Sol</button>
+        <button class="terr-btn" style="background:#06b6d4; color:#000;" onclick="switchTerritory('tribal', this)">Pulso Tribal</button>
+        <button class="terr-btn" style="background:#f97316;" onclick="switchTerritory('arco', this)">Cañón del Arco</button>
+      </div>
+
+      <div id="terr-bosque" class="terr-content active">
+        <h3 style="color:#10b981; margin-top:0;">🌲 Bosque del Metal Resonante (Guardianes del Eco)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="metalofono.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Metalófono</div></div>
+        </div>
+      </div>
+
+      <div id="terr-viento" class="terr-content">
+        <h3 style="color:#3b82f6; margin-top:0;">🌊 Mar del Viento Susurrante (Heraldos del Viento)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="melodica.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Melódica</div></div>
+          <div class="mission-item"><img src="flauta.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Flauta</div></div>
+          <div class="mission-item"><img src="voz.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Voz</div></div>
+        </div>
+      </div>
+
+      <div id="terr-magma" class="terr-content">
+        <h3 style="color:#ef4444; margin-top:0;">🌋 Cumbres de las Teclas Magmáticas (Hechiceros de la Armonía)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="piano.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Piano</div></div>
+          <div class="mission-item"><img src="acordeon.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Acordeón</div></div>
+        </div>
+      </div>
+
+      <div id="terr-grave" class="terr-content">
+        <h3 style="color:#a855f7; margin-top:0;">🌑 Penumbra del Retumbar Grave (Centinelas del Grave)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="bajo.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Bajo</div></div>
+        </div>
+      </div>
+
+      <div id="terr-sol" class="terr-content">
+        <h3 style="color:#eab308; margin-top:0;">☀️ Estepa de las Cuerdas del Sol (Bardos de las Cuerdas)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="guitarra.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Guitarra</div></div>
+          <div class="mission-item"><img src="ukelele.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Ukelele</div></div>
+          <div class="mission-item"><img src="mandolina.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Mandolina</div></div>
+          <div class="mission-item"><img src="charango.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Charango</div></div>
+        </div>
+      </div>
+
+      <div id="terr-tribal" class="terr-content">
+        <h3 style="color:#06b6d4; margin-top:0;">🥁 Valle del Pulso Tribal (Forjadores del Ritmo)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="bombo.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Bombo</div></div>
+          <div class="mission-item"><img src="caja.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Caja</div></div>
+          <div class="mission-item"><img src="platos.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Platos</div></div>
+          <div class="mission-item"><img src="shekere.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Shekere</div></div>
+          <div class="mission-item"><img src="bateria.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Batería</div></div>
+          <div class="mission-item"><img src="pandero.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Pandero</div></div>
+        </div>
+      </div>
+
+      <div id="terr-arco" class="terr-content">
+        <h3 style="color:#f97316; margin-top:0;">🏹 Cañón del Arco (Caballeros del Arco)</h3>
+        <div class="missions-grid">
+          <div class="mission-item"><img src="violin.png" class="mission-img" onclick="openImageModal(this.src)"><div class="mission-title">Violín</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PESTAÑAS CURSOS -->
+<div id="tab-Tercero" class="tab-content"></div>
+<div id="tab-Cuarto" class="tab-content"></div>
+<div id="tab-Quinto" class="tab-content"></div>
+<div id="tab-Sexto" class="tab-content"></div>
+
+<!-- REGISTRO DE ALUMNOS / PROFESORES -->
+<div id="tab-registro" class="tab-content">
+  <div class="form-container">
+    <h3 style="margin-top:0;">Forjar Personaje / Gema Sonora</h3>
+    <form id="studentForm">
+      <div class="form-group">
+        <label>Tipo de Personaje:</label>
+        <select id="stuType" onchange="toggleCourseVisibility()">
+          <option value="estudiante">Estudiante / Héroe</option>
+          <option value="profesor">Profesor / Jefe Final</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nombre:</label>
+        <input type="text" id="stuName" required placeholder="Ej. Ana o Maestro Nicolás">
+      </div>
+      <div class="form-group" id="courseGroup">
+        <label>Curso:</label>
+        <select id="stuCourse">
+          <option value="Tercero">Tercero</option>
+          <option value="Cuarto">Cuarto</option>
+          <option value="Quinto">Quinto</option>
+          <option value="Sexto">Sexto</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Instrumento Predestinado:</label>
+        <select id="stuInst" required>
+          <option value="" disabled selected>-- Selecciona un Instrumento --</option>
+          <optgroup label="Bosque del Metal Resonante">
+            <option value="metalofono">Metalófono</option>
+          </optgroup>
+          <optgroup label="Mar del Viento Susurrante">
+            <option value="melodica">Melódica</option>
+            <option value="flauta">Flauta dulce</option>
+            <option value="voz">Voz</option>
+          </optgroup>
+          <optgroup label="Cumbres de las Teclas Magmáticas">
+            <option value="piano">Piano</option>
+            <option value="acordeon">Acordeón</option>
+          </optgroup>
+          <optgroup label="Penumbra del Retumbar Grave">
+            <option value="bajo">Bajo</option>
+          </optgroup>
+          <optgroup label="Estepa de las Cuerdas del Sol">
+            <option value="guitarra">Guitarra</option>
+            <option value="ukelele">Ukelele</option>
+            <option value="mandolina">Mandolina</option>
+            <option value="charango">Charango</option>
+          </optgroup>
+          <optgroup label="Valle del Pulso Tribal">
+            <option value="bombo">Bombo</option>
+            <option value="caja">Caja</option>
+            <option value="platos">Platos</option>
+            <option value="shekere">Shekere</option>
+            <option value="bateria">Batería</option>
+            <option value="pandero">Pandero</option>
+          </optgroup>
+          <optgroup label="Cañón del Arco">
+            <option value="violin">Violín</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Foto de Avatar (Proporción 9:16):</label>
+        <input type="file" id="stuPhoto" accept="image/*" required>
+      </div>
+      <button type="submit" id="submitBtn" class="btn-submit">Despertar Personaje</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE AMPLIACIÓN -->
+<div id="imageModal" class="modal-overlay" onclick="closeImageModal()">
+  <img id="modalImg" class="modal-img" src="" alt="Elemento Ampliado">
+</div>
+
+<script>
+  let currentUserRole = 'Tercero';
+  let isTeacherMode = false;
+
+  const PINS = {
+    '1234': 'MAESTRO',
+    '333': 'Tercero',
+    '444': 'Cuarto',
+    '555': 'Quinto',
+    '666': 'Sexto'
+  };
+
+  let students = JSON.parse(localStorage.getItem('constellaria_students_v3')) || [];
+
+  const instrumentData = {
+    'metalofono': { tribu: 'Guardianes del Eco', color: 'insignia-verde.png' },
+    'melodica': { tribu: 'Heraldos del Viento', color: 'insignia-azul.png' },
+    'flauta': { tribu: 'Heraldos del Viento', color: 'insignia-azul.png' },
+    'voz': { tribu: 'Heraldos del Viento', color: 'insignia-azul.png' },
+    'piano': { tribu: 'Hechiceros de la Armonía', color: 'insignia-rojo.png' },
+    'acordeon': { tribu: 'Hechiceros de la Armonía', color: 'insignia-rojo.png' },
+    'bajo': { tribu: 'Centinelas del Grave', color: 'insignia-morado.png' },
+    'guitarra': { tribu: 'Bardos de las Cuerdas', color: 'insignia-amarillo.png' },
+    'ukelele': { tribu: 'Bardos de las Cuerdas', color: 'insignia-amarillo.png' },
+    'mandolina': { tribu: 'Bardos de las Cuerdas', color: 'insignia-amarillo.png' },
+    'charango': { tribu: 'Bardos de las Cuerdas', color: 'insignia-amarillo.png' },
+    'bombo': { tribu: 'Forjadores del Ritmo', color: 'insignia-turquesa.png' },
+    'caja': { tribu: 'Forjadores del Ritmo', color: 'insignia-turquesa.png' },
+    'platos': { tribu: 'Forjadores del Ritmo', color: 'insignia-turquesa.png' },
+    'shekere': { tribu: 'Forjadores del Ritmo', color: 'insignia-turquesa.png' },
+    'bateria': { tribu: 'Forjadores del Ritmo', color: 'insignia-turquesa.png' },
+    'pandero': { tribu: 'Forjadores del Ritmo', color: 'insignia-turquesa.png' },
+    'violin': { tribu: 'Caballeros del Arco', color: 'insignia-naranja.png' }
+  };
+
+  const levelFrames = {
+    0: null, 1: 'hierro.png', 2: 'bronce.png', 3: 'plata.png', 4: 'oro.png', 5: 'oro.png'
+  };
+
+  function toggleCourseVisibility() {
+    const type = document.getElementById('stuType').value;
+    const courseGroup = document.getElementById('courseGroup');
+    courseGroup.style.display = (type === 'profesor') ? 'none' : 'block';
+  }
+
+  function openImageModal(imgSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImg');
+    modalImg.src = imgSrc;
+    modal.classList.add('active');
+  }
+
+  function closeImageModal() {
+    document.getElementById('imageModal').classList.remove('active');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeImageModal();
+  });
+
+  function applyAccessPermissions() {
+    const btnReg = document.getElementById('btn-tab-registro');
+    const btn3 = document.getElementById('btn-tab-Tercero');
+    const btn4 = document.getElementById('btn-tab-Cuarto');
+    const btn5 = document.getElementById('btn-tab-Quinto');
+    const btn6 = document.getElementById('btn-tab-Sexto');
+    const modeBtn = document.getElementById('modeBtn');
+
+    if (currentUserRole === 'MAESTRO') {
+      isTeacherMode = true;
+      modeBtn.textContent = 'Modo: Maestro Nicolás (Editar)';
+      modeBtn.className = 'mode-toggle teacher';
+      btnReg.classList.remove('hidden');
+      btn3.classList.remove('hidden');
+      btn4.classList.remove('hidden');
+      btn5.classList.remove('hidden');
+      btn6.classList.remove('hidden');
+    } else {
+      isTeacherMode = false;
+      modeBtn.textContent = `Modo Alumno (${currentUserRole})`;
+      modeBtn.className = 'mode-toggle';
+      btnReg.classList.add('hidden');
+      
+      btn3.classList.toggle('hidden', currentUserRole !== 'Tercero');
+      btn4.classList.toggle('hidden', currentUserRole !== 'Cuarto');
+      btn5.classList.toggle('hidden', currentUserRole !== 'Quinto');
+      btn6.classList.toggle('hidden', currentUserRole !== 'Sexto');
+    }
+    switchTab('lore');
+    renderAllCourses();
+  }
+
+  function promptAccessCode(isInitial = false) {
+    const pin = prompt('🔑 Ingresa tu clave de acceso (Maestro o Curso):');
+    if (pin && PINS[pin]) {
+      currentUserRole = PINS[pin];
+      applyAccessPermissions();
+    } else {
+      if (pin) alert('Clave incorrecta.');
+      if (isInitial) {
+        currentUserRole = 'Tercero';
+        applyAccessPermissions();
+      }
+    }
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    const targetBtn = document.getElementById(`btn-tab-${tabId}`);
+    const targetContent = document.getElementById(`tab-${tabId}`);
+    
+    if (targetBtn) targetBtn.classList.add('active');
+    if (targetContent) targetContent.classList.add('active');
+  }
+
+  function switchTerritory(terrId, btnElement) {
+    document.querySelectorAll('.terr-btn').forEach(btn => {
+      btn.style.opacity = '0.5';
+      btn.style.border = 'none';
+    });
+    btnElement.style.opacity = '1';
+    btnElement.style.border = '2px solid #fff';
+
+    document.querySelectorAll('.terr-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(`terr-${terrId}`).classList.add('active');
+  }
+
+  document.getElementById('studentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('stuName').value.trim();
+    const instKey = document.getElementById('stuInst').value;
+    const type = document.getElementById('stuType').value;
+    const course = type === 'profesor' ? 'ALL' : document.getElementById('stuCourse').value;
+    const fileInput = document.getElementById('stuPhoto');
+    const file = fileInput.files[0];
+
+    if (!nameInput) {
+      alert('Por favor, ingresa un nombre.');
+      return;
+    }
+    if (!instKey || !instrumentData[instKey]) {
+      alert('Por favor, selecciona un instrumento válido.');
+      return;
+    }
+    if (!file) {
+      alert('Por favor, selecciona una foto de avatar.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.textContent = 'Procesando personaje...';
+    submitBtn.disabled = true;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 450;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+
+        const newStudent = {
+          id: Date.now(),
+          type: type,
+          name: nameInput,
+          course: course,
+          instrumentKey: instKey,
+          instrumentName: document.getElementById('stuInst').options[document.getElementById('stuInst').selectedIndex].text,
+          tribu: instrumentData[instKey].tribu,
+          colorInsignia: instrumentData[instKey].color,
+          photo: compressedBase64,
+          level: 0 
+        };
+
+        students.push(newStudent);
+        saveAndRefresh();
+
+        document.getElementById('studentForm').reset();
+        toggleCourseVisibility();
+
+        submitBtn.textContent = 'Despertar Personaje';
+        submitBtn.disabled = false;
+
+        alert('✨ ¡Personaje despertado con éxito!');
+
+        const targetTab = (type === 'profesor') ? 'Tercero' : course;
+        switchTab(targetTab);
+      };
+
+      img.onerror = function() {
+        alert('Error al leer el archivo de imagen.');
+        submitBtn.textContent = 'Despertar Personaje';
+        submitBtn.disabled = false;
+      };
+
+      img.src = event.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  function saveAndRefresh() {
+    try {
+      localStorage.setItem('constellaria_students_v3', JSON.stringify(students));
+    } catch(err) {
+      console.error(err);
+      alert('⚠️ No se pudo guardar en memoria.');
+    }
+    renderAllCourses();
+  }
+
+  function changeLevel(id, delta) {
+    const student = students.find(s => s.id === id);
+    if (student) {
+      student.level = Math.max(0, Math.min(5, student.level + delta));
+      saveAndRefresh();
+    }
+  }
+
+  function deleteStudent(id) {
+    if (confirm('¿Deseas desterrar a este personaje de Constellaria?')) {
+      students = students.filter(s => s.id !== id);
+      saveAndRefresh();
+    }
+  }
+
+  function createAvatarCardHTML(s, isBoss = false) {
+    const frameImg = levelFrames[s.level];
+    const colorGema = s.colorInsignia;
+    const diamanteImg = `diamante-${s.instrumentKey}.png`;
+    const maxLvlClass = s.level === 5 ? 'max-level' : '';
+
+    return `
+      <div class="avatar-card ${isBoss ? 'boss-card' : ''}">
+        <div class="card-layers lvl-${s.level}">
+          <img src="${s.photo}" class="layer-base">
+          ${frameImg ? `<img src="${frameImg}" class="layer-marco">` : ''}
+          <img src="${colorGema}" class="layer-insignia">
+          ${s.level === 5 ? `<img src="${diamanteImg}" class="layer-diamante">` : ''}
+        </div>
+
+        <div class="student-info">
+          <div class="student-name">${s.name}</div>
+          <div class="student-detail">🎵 ${s.instrumentName}</div>
+          ${isBoss 
+            ? `<div class="level-badge boss-badge">👑 JEFE FINAL</div>` 
+            : `<div class="level-badge ${maxLvlClass}">Misión: ${s.level} ${getLvlName(s.level)}</div>`
+          }
+        </div>
+
+        ${isTeacherMode ? `
+          <div class="controls-teacher">
+            <button class="btn-action btn-lvl" onclick="changeLevel(${s.id}, 1)">⬆ Nvl</button>
+            <button class="btn-action btn-lvl" onclick="changeLevel(${s.id}, -1)">⬇ Nvl</button>
+            <button class="btn-action btn-del" onclick="deleteStudent(${s.id})">🗑</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  function renderAllCourses() {
+    const courses = ['Tercero', 'Cuarto', 'Quinto', 'Sexto'];
+    const tribusOrden = [
+      'Guardianes del Eco', 'Heraldos del Viento', 'Hechiceros de la Armonía',
+      'Centinelas del Grave', 'Bardos de las Cuerdas', 'Forjadores del Ritmo', 'Caballeros del Arco'
+    ];
+
+    const profesores = students.filter(s => s.type === 'profesor');
+
+    courses.forEach(courseCode => {
+      const courseContainer = document.getElementById(`tab-${courseCode}`);
+      const courseStudents = students.filter(s => s.type !== 'profesor' && s.course === courseCode);
+
+      let courseHTML = `<h2>Generación ${courseCode}</h2>`;
+      courseHTML += `<div class="course-layout">`;
+
+      // TRIBUS DE ALUMNOS
+      courseHTML += `<div class="tribus-main">`;
+      if (courseStudents.length === 0) {
+        courseHTML += `<p style="color:#64748b;">No hay héroes registrados en esta generación.</p>`;
+      } else {
+        tribusOrden.forEach(tribuName => {
+          const tribuStudents = courseStudents.filter(s => s.tribu === tribuName);
+          if (tribuStudents.length > 0) {
+            courseHTML += `<div class="tribu-section"><h3 class="tribu-title">⚔️ ${tribuName}</h3><div class="grid-avatars">`;
+            tribuStudents.forEach(s => {
+              courseHTML += createAvatarCardHTML(s, false);
+            });
+            courseHTML += `</div></div>`;
+          }
+        });
+      }
+      courseHTML += `</div>`;
+
+      // JEFE FINAL / PROFESOR
+      courseHTML += `<aside class="boss-sidebar">`;
+      courseHTML += `<h3 class="boss-title">👑 Jefe Final</h3>`;
+      if (profesores.length === 0) {
+        courseHTML += `<p style="color:#94a3b8; font-size:0.85em;">No hay un Maestro asignado aún.</p>`;
+      } else {
+        profesores.forEach(p => {
+          courseHTML += createAvatarCardHTML(p, true);
+        });
+      }
+      courseHTML += `</aside>`;
+
+      courseHTML += `</div>`;
+      courseContainer.innerHTML = courseHTML;
+    });
+  }
+
+  function getLvlName(lvl) {
+    const names = ['(Despertar)', '(Hierro)', '(Bronce)', '(Plata)', '(Oro)', '(DIAMANTE)'];
+    return names[lvl] || '';
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    promptAccessCode(true);
+  });
+</script>
+</body>
+</html>
